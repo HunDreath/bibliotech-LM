@@ -4,12 +4,12 @@ import java.util.regex.Pattern;
 
 /**
  * Utilitaires de validation.
- * 
+ *
  */
 public class ValidationUtils {
     
     // Regex - problème : recompilées à chaque validation
-    private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@(.+)$";
+    private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9][A-Za-z0-9.-]*\\.[A-Za-z]{2,}$";
     private static final String ISBN_10_REGEX = "^\\d{10}$";
     private static final String ISBN_13_REGEX = "^\\d{13}$";
     private static final String PHONE_REGEX = "^[0-9]{10}$";
