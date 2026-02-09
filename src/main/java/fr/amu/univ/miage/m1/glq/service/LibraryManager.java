@@ -24,10 +24,9 @@ public class LibraryManager {
     private static final int DEFAULT_LOAN_DURATION_DAYS = 21;
     private static LibraryManager instance;
     private final BookService bookService = new BookService();
-    private Map<String, Member> members = new HashMap<>();
+    private final MemberService memberService = new MemberService();
     private Map<String, Loan> loans = new HashMap<>();
     private Map<String, Reservation> reservations = new HashMap<>();
-    private int memberIdCounter = 1;
     private int loanIdCounter = 1;
     private int reservationIdCounter = 1;
 
@@ -141,38 +140,27 @@ public class LibraryManager {
      * Ajoute un membre à la bibliothèque.
      */
     public String addMember(String firstName, String lastName, String email, String type) {
-        String id = "M" + String.format("%05d", memberIdCounter++);
-        Member member = new Member(id, firstName, lastName, email, type);
-        members.put(id, member);
-        System.out.println("Membre ajouté : " + member);
-        return id;
+        return memberService.addMember(firstName, lastName, email, type);
     }
 
     public Member getMember(String id) {
-        return members.get(id);
+        return memberService.getMember(id);
     }
 
     public Member getMemberByEmail(String email) {
-        for (Member member : members.values()) {
-            if (member.getEmail() != null && member.getEmail().equals(email)) {
-                return member;
-            }
-        }
-        return null;
+        return memberService.getMemberByEmail(email);
     }
 
     public List<Member> getAllMembers() {
-        return new ArrayList<>(members.values());
+        return memberService.getAllMembers();
     }
 
     public void updateMember(Member member) {
-        if (members.containsKey(member.getId())) {
-            members.put(member.getId(), member);
-        }
+        memberService.updateMember(member);
     }
 
     public void deleteMember(String id) {
-        members.remove(id);
+        memberService.deleteMember(id);
     }
 
     /**
@@ -190,7 +178,7 @@ public class LibraryManager {
 
     private Member findMemberById(String memberId) {
         // Récupérer le membre
-        Member member = members.get(memberId);
+        Member member = memberService.getMembers().get(memberId);
         if (member == null) {
             throw new RuntimeException("Membre non trouvé : " + memberId);
         }
@@ -513,7 +501,7 @@ public class LibraryManager {
     // ==================== GESTION DES RÉSERVATIONS ====================
 
     public String createReservation(String memberId, String bookId) {
-        Member member = members.get(memberId);
+        Member member = memberService.getMembers().get(memberId);
         if (member == null) {
             throw new RuntimeException("Membre non trouvé");
         }
@@ -591,7 +579,7 @@ public class LibraryManager {
         }
 
         if (nextReservation != null) {
-            Member member = members.get(nextReservation.getMemberId());
+            Member member = memberService.getMembers().get(nextReservation.getMemberId());
             Book book = bookService.getBooks().get(bookId);
 
             sendNotification(
@@ -742,7 +730,7 @@ public class LibraryManager {
 
         // Membres avec le plus de retards
         List<Member> membersWithLateReturns = new ArrayList<>();
-        for (Member member : members.values()) {
+        for (Member member : memberService.getMembers().values()) {
             if (member.getLateReturnsCount() > 0) {
                 membersWithLateReturns.add(member);
             }
@@ -815,9 +803,9 @@ public class LibraryManager {
         bookService.addBook("Le Petit Prince", "Antoine de Saint-Exupéry", "978-2070612758", 1943, 4, "ROMAN");
 
         // Quelques membres
-        addMember("Alice", "Martin", "alice.martin@univ.fr", "STUDENT");
-        addMember("Bob", "Dupont", "bob.dupont@univ.fr", "STUDENT");
-        addMember("Claire", "Durand", "claire.durand@univ.fr", "TEACHER");
-        addMember("David", "Bernard", "david.bernard@univ.fr", "STAFF");
+        memberService.addMember("Alice", "Martin", "alice.martin@univ.fr", "STUDENT");
+        memberService.addMember("Bob", "Dupont", "bob.dupont@univ.fr", "STUDENT");
+        memberService.addMember("Claire", "Durand", "claire.durand@univ.fr", "TEACHER");
+        memberService.addMember("David", "Bernard", "david.bernard@univ.fr", "STAFF");
     }
 }
