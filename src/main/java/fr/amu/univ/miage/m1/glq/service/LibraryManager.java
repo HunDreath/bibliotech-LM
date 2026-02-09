@@ -16,8 +16,6 @@ import java.util.*;
  */
 public class LibraryManager {
 
-    // Configuration en dur
-    private static final double PENALTY_RATE_PER_DAY = 0.50;
     private static final int MAX_RENEWALS = 2;
     private static final int STUDENT_LOAN_DURATION_DAYS = 14;
     private static final int TEACHER_LOAN_DURATION_DAYS = 30;
@@ -25,6 +23,7 @@ public class LibraryManager {
     private static LibraryManager instance;
     private final BookService bookService = new BookService();
     private final MemberService memberService = new MemberService();
+    private final PenaltyCalculator penaltyCalculator = new PenaltyCalculator();
     private Map<String, Loan> loans = new HashMap<>();
     private Map<String, Reservation> reservations = new HashMap<>();
     private int loanIdCounter = 1;
@@ -356,7 +355,7 @@ public class LibraryManager {
         // Calculer les pénalités si en retard
         if (loan.isOverdue()) {
             int daysOverdue = loan.getDaysOverdue();
-            double penalty = calculatePenalty(loan.getMember(), daysOverdue);
+            double penalty = penaltyCalculator.calculatePenalty(loan.getMember(), daysOverdue);
             loan.setPenaltyAmount(penalty);
 
             // Incrémenter le compteur de retards
@@ -397,29 +396,8 @@ public class LibraryManager {
      * Calcule la pénalité de retard.
      */
     public double calculatePenalty(Member member, int daysOverdue) {
-        if (daysOverdue <= 0) {
-            return 0;
-        }
 
-        double rate;
-        double maxPenalty;
-
-        if (member.getMemberType().equals("STUDENT")) {
-            rate = 0.25; // Tarif réduit pour les étudiants
-            maxPenalty = 10.0;
-        } else if (member.getMemberType().equals("TEACHER")) {
-            rate = 0.0; // Pas de pénalité pour les enseignants
-            maxPenalty = 0.0;
-        } else if (member.getMemberType().equals("STAFF")) {
-            rate = 0.25;
-            maxPenalty = 15.0;
-        } else {
-            rate = 0.50; // Tarif plein pour les externes
-            maxPenalty = 25.0;
-        }
-
-        double penalty = daysOverdue * rate;
-        return Math.min(penalty, maxPenalty);
+        return penaltyCalculator.calculatePenalty(member, daysOverdue);
     }
 
     /**
@@ -646,7 +624,7 @@ public class LibraryManager {
                 Member member = loan.getMember();
                 Book book = loan.getBook();
                 int daysOverdue = loan.getDaysOverdue();
-                double penalty = calculatePenalty(member, daysOverdue);
+                double penalty = penaltyCalculator.calculatePenalty(member, daysOverdue);
 
                 sendNotification(
                         member.getEmail(),
